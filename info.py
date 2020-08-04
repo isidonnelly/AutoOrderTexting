@@ -3,7 +3,7 @@ This is the key class used in the text message response code. It contains the te
 """
 
 
-class info:
+class Info:
 
     def __init__(self, txt, fro, to, rinfo):
         self.txt = txt

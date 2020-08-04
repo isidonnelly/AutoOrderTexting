@@ -4,7 +4,6 @@ to enable text message ordering for restaurants.
 This file is mainly for parsing the database to find the user and define global variables.
 """
 
-
 from settings import *
 from essentials import *
 
@@ -22,16 +21,24 @@ import datetime
 #site for error handling
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
+
+#setup site for error handling
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[FlaskIntegration()]
 )
 
+"""
+/sms is the entry point for text message logic
+/checkedout<mode> is the webhook stripe calls when a user checks out
+"""
 #setup flask app
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-#scheduler function to delete all the old orders
+"""
+Deletes active orders that are more than 20 minutes old.
+"""
 def delete_old():
 
     #get current time and initiate a list
@@ -52,7 +59,7 @@ def delete_old():
         if difference.total_seconds()/60 > 20:
             OPC.delete_one({"_id":order["_id"]})
 
-#create scheduler
+#create scheduler that runs the delete_old function every 30 seconds
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=delete_old, trigger="interval", seconds=30)
 scheduler.start()
@@ -64,7 +71,7 @@ scheduler.start()
 def main():
 
     #setup a class to store the basic info (message, from number, to number, rinfo will be updated)
-    msg = info(request.values.get('Body').lower(), request.values.get('From', None), request.values.get('To', None), None)
+    msg = Info(txt=request.values.get('Body').lower(), fro=request.values.get('From', None), to=request.values.get('To', None), rinfo=None)
 
     #if the user does not have a profile in our database (this is how we will collect data on users in the future)
     if not UNC.find_one({"_id":msg.fro}):
@@ -91,7 +98,7 @@ def main():
             return order_index(msg)
 
 
-    #THE NEXT PART OF THE CODE TRIES TO FILL IN THE CURRENT ORDER
+    #Try to fill in current order
 
     #if the number only has one restaurant attached to it
     if len(to_profile["codes"]) == 1:
@@ -132,18 +139,15 @@ def main():
                 return order_index(msg)
 
 
-    #if the program fails to fill in the current order, send an index message
-    else:
-        return send_message(resp)
+    #if the program fails to fill in the current order, send the index message
+    return send_message(resp)
 
 
 
 #Stripe webhook for when payment is completed
 @app.route("/checkedout/<mode>", methods=['POST'])
 def checkedout(mode):
-
     print("webhook called!")
-
     if request.content_length > 1024*1024:
         print("request too large")
         abort(400)
@@ -177,7 +181,6 @@ def checkedout(mode):
 
     # Handle the checkout.session.completed event
     if event['type'] == 'checkout.session.completed':
-        print("HI")
 
         #get the session
         session = event['data']['object']

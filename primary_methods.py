@@ -93,7 +93,7 @@ def ordering_process(msg):
     if is_similar(msg, "finish"):
 
         #if the user didn't order anything
-        if subtotal(msg) < 0.5:
+        if subtotal(msg) < 50:
             return send_message("Sorry, your order must cost more than $0.50. Please order a main item.")
 
         #if the user did order something

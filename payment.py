@@ -30,7 +30,7 @@ def checkout(msg):
         line_items=[{
             
             'price_data': {
-                'unit_amount': int((subtotal(msg)+tax(msg))*100),
+                'unit_amount': subtotal(msg)+tax(msg),
                 'currency': 'usd',
                 'product': product_id,
         },

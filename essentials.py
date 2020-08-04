@@ -10,6 +10,7 @@ from math import ceil
 Deals with typos. Returns true if the msg contains a word that matches to one letter off.
 Input: The item name to match msg with
 Returns: True or False
+Source code: https://stackoverflow.com/questions/62924788/how-can-you-find-if-a-string-in-python-approximately-contains-another-string
 """
 def is_similar(msg, Word):
 
@@ -131,10 +132,10 @@ def tax(msg):
     sub = subtotal(msg)
     rate = msg.rinfo["tax"]
     #amount of money going to restaurant based on stripe commission and transaction fees and our transaction fee
-    restaurant_total = 0.971*sub - 0.3 - 0.2
+    restaurant_total = 0.971*sub - 30 - 20
     #tax is 2.9% more than the tax rate because of stripe's commission
     tax = rate*restaurant_total*1.029
-    tax_rounded = ceil(tax * (10**2)) / float(10**2)
+    tax_rounded = ceil(tax)
     return tax_rounded
 
 
@@ -155,18 +156,17 @@ def your_options_are(sublist):
 
 
 """
-Makes prices look nice. (8.0 -> $8)
+Makes prices look nice, from cents to dollars. (800 -> $8)
 Input: a float
 Output: a string
 """
 def pricify(price):
-    if float(price).is_integer():
-        price = int(price)
-        resp = "${price}".format(price=price)
-    elif (price/0.1).is_integer():
-        resp = "${price}0".format(price=price)
+    if (price/100).is_integer():
+        resp = "${price}".format(price=int(price/100))
+    elif (price/10).is_integer():
+        resp = "${price}0".format(price=price/100)
     else:
-        resp = "${price}".format(price=price)
+        resp = "${price}".format(price=price/100)
 
     return resp
 
