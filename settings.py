@@ -39,17 +39,28 @@ STRIPE_TEST_API_KEY = os.getenv("STRIPE_TEST_API_KEY")
 CLUSTER_ID = os.getenv("CLUSTER_ID")
 CLUSTER = MongoClient(CLUSTER_ID)
 
+"""
+No, don't use different environment variables. Each set of env vars should
+have a STRIP_API_KEY and STRIPE_PRODUCT_KEY, but the one associated
+with that environment.
+"""
 if ENVIRONMENT == "development":
     DB = CLUSTER["Development"]
     STRIPE_API_KEY = os.getenv("STRIPE_TEST_API_KEY")
     STRIPE_PRODUCT_ID = os.getenv("STRIPE_TEST_PRODUCT_ID")
 
+"""
+Normally "production" is the environment name we use
+"""
 if ENVIRONMENT == "deployment":
     DB = CLUSTER["Deployment"]
     STRIPE_API_KEY = os.getenv("STRIPE_LIVE_API_KEY")
     STRIPE_PRODUCT_ID = os.getenv("STRIPE_LIVE_PRODUCT_ID")
 
 
+"""
+Why does one have "our" but not the others :O
+"""
 ONC = DB["our_numbers"]
 UNC = DB["user_numbers"]
 OPC = DB["order_process"]

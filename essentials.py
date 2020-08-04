@@ -1,11 +1,16 @@
 """
 This file is for even more general methods. This file should not require any imports except global variables.
 """
-
+"""
+Nit: imports before file docstring
+"""
 from settings import *
 
 from math import ceil
 
+"""
+Nit: put the source for this code (you said you got it from SO, so add a link)
+"""
 """
 Deals with typos. Returns true if the msg contains a word that matches to one letter off.
 Input: The item name to match msg with
@@ -68,7 +73,9 @@ Input: item (current_item)
 Returns: A string, example: "1x Pizza[$8] (Size: Medium[+$2]. Toppings: Pepperoni[+$1], Mushroom[+$0.5], Onion[+$1].)."
 """
 def stringify_order(msg):
-     
+    """
+    Python 3.8 has better ways to format strings now than .format()
+    """
     resp = "YOUR ORDER: "
     item_list = current_order(msg)["item_list"]
 
@@ -118,6 +125,9 @@ def subtotal(msg):
             for subitem in item[sublist["name"]]:
                 cost += subitem["add_price"]
 
+    """
+    I would double check that cost > 0 at this point, just for sanity
+    """
     return cost
 
 
@@ -126,7 +136,9 @@ Get the tax of the total cost.
 Returns: Amount of tax based on order total and specific restaurant tax rate.
 """
 def tax(msg):
-
+    """
+    Tax varies state by state (and sometimes county by county!). This calculation is prbably much more involved than you have here
+    """
     #get subtotal, tax rate
     sub = subtotal(msg)
     rate = msg.rinfo["tax"]
@@ -144,6 +156,9 @@ Makes a string like: "Your options are: pepperoni mushroom onion etc." for a sub
 Input: A sublist
 Returns: string
 """
+"""
+This would be a great example of something to write tests for!
+"""
 def your_options_are(sublist):
 
     resp = "\n\nYour options are:"
@@ -154,6 +169,12 @@ def your_options_are(sublist):
     return resp
 
 
+"""
+Something I should note: you almost never want to use floats for dealing with
+money. You get round-off errors and floating point precision errors. Instead, you
+should keep track of prices in terms of cents (100 = $1), and then only divide at the
+very very end.
+"""
 """
 Makes prices look nice. (8.0 -> $8)
 Input: a float

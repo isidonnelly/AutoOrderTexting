@@ -11,6 +11,9 @@ from order_processing import *
 
 import datetime
 
+"""
+primary_methods is not a very descriptive name. Maybe something like order_pipeline.py or something?
+"""
 
 #triggered if the message sent is the first message the customer has sent in 4 hours I think because that is when the session is cleared
 def first_message(msg):

@@ -22,6 +22,9 @@ import datetime
 #site for error handling
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
+"""
+Nit: there should be an empty line between imports and code
+"""
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[FlaskIntegration()]
@@ -31,6 +34,17 @@ sentry_sdk.init(
 app = Flask(__name__)
 app.config.from_object(__name__)
 
+"""
+Consider adding a file-level docsring explaining that this contains all the routes 
+for the web app
+"""
+
+"""
+Docstrings (comments explainig what a method/function/class does) should be
+multi-line comments, like this comment is. 
+
+This comment and function name is also not very descriptive. Old what?
+"""
 #scheduler function to delete all the old orders
 def delete_old():
 
@@ -38,10 +52,20 @@ def delete_old():
     current_time = datetime.datetime.today()
     items_to_delete = []
 
+    """
+    Maybe consider making a file for each type of collection your database has. For example,
+    maybe have a file called opc.py that contains a function all_orders() that returns
+    OPC.find({}). This way, your business logic (logic that handles talking to the database)
+    is separated from your operation logic.
+    """
     #get all orders and iterate through them
     orders = OPC.find({})
     for order in orders:
 
+        """
+        Operations like these should be extracted into its own function. It's typical to see a
+        file named util.py that contains utilities like converting datetimes and what not.
+        """
         #converts the order time from a string to a datetime
         order_time_str = order["timestamp"]
         form = "%Y-%m-%d %H:%M:%S.%f"
@@ -50,8 +74,20 @@ def delete_old():
         #if the difference between the last time the order was updated and the current time is greater than 20 minutes, delete the order from the database
         difference = current_time - order_time
         if difference.total_seconds()/60 > 20:
+            """
+            Danger! Don't delete things!
+
+            I highly encourage each document having a "DELETED" boolean field. This will make getting
+            objects a little more annoying. But you can have a "default" query that gets all documents
+            that are not deleted, and perform operations on top of that. If you separate business logic
+            into their own files/classes, this is very easy. 
+            """
             OPC.delete_one({"_id":order["_id"]})
 
+"""
+Some more description in this comment would be good. What does this scheduler do? Why do we do it? How often
+does it run?
+"""
 #create scheduler
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=delete_old, trigger="interval", seconds=30)
@@ -63,9 +99,15 @@ scheduler.start()
 @app.route("/sms", methods=['GET', 'POST'])
 def main():
 
+    """
+    Consider using kwargs to make this easier to read
+    """
     #setup a class to store the basic info (message, from number, to number, rinfo will be updated)
     msg = info(request.values.get('Body').lower(), request.values.get('From', None), request.values.get('To', None), None)
 
+    """
+    Again, it would be nice to just have a function to call like users.get_or_create(id)
+    """
     #if the user does not have a profile in our database (this is how we will collect data on users in the future)
     if not UNC.find_one({"_id":msg.fro}):
         UNC.insert_one({"_id":msg.fro})
@@ -91,8 +133,17 @@ def main():
             return order_index(msg)
 
 
+    """
+    A comment saying "Try to fill in the current order" is enough :)
+    """
     #THE NEXT PART OF THE CODE TRIES TO FILL IN THE CURRENT ORDER
 
+    """
+    This is an example where a function name would remove the need for a comment. Make a method
+    named something like num_associated_restaurants, and then you can just write
+        if num_associated_restaurants(profile) == 1:
+    and not need a comment.
+    """
     #if the number only has one restaurant attached to it
     if len(to_profile["codes"]) == 1:
         
@@ -122,6 +173,9 @@ def main():
 
             #if the user did enter a keyword
             if is_similar(msg, name):
+                """
+                Re-used code from above; consider making a function
+                """
                 #initialize order object
                 OPC.insert_one({"from_num":msg.fro, "to_num":msg.to, "code":code, "timestamp":str(datetime.datetime.today()), "section":"first", "sublist_in_q":None, "item_list":[], "method_of_getting_food":"pickup", "address":None, "comments":None, "payment_intent":None})
 
@@ -132,6 +186,9 @@ def main():
                 return order_index(msg)
 
 
+    """
+    What is this an else for?
+    """
     #if the program fails to fill in the current order, send an index message
     else:
         return send_message(resp)
@@ -142,8 +199,16 @@ def main():
 @app.route("/checkedout/<mode>", methods=['POST'])
 def checkedout(mode):
 
+    """
+    Remove debug statements
+    """
     print("webhook called!")
 
+    """
+    This would be a great use for a global variable, like MAX_CONTENT_LENGTH.
+    Try to avoid what we call "magic numbers" in your code. 400 is okay since it's
+    a standardized status code.
+    """
     if request.content_length > 1024*1024:
         print("request too large")
         abort(400)
@@ -154,6 +219,9 @@ def checkedout(mode):
     if mode == "live":
         endpoint_secret = STRIPE_LIVE_SECRET_ENDPOINT
 
+    """
+    Sounds dangerous to have in prod
+    """
     if mode == "test":
         endpoint_secret = STRIPE_TEST_SECRET_ENDPOINT
 
@@ -165,6 +233,9 @@ def checkedout(mode):
         payload, sig_header, endpoint_secret
     )
 
+    """
+    You should consider using more descriptive error codes than a generic 400
+    """
     except ValueError as e:
         # Invalid payload
         print("invalid payload!")
@@ -177,6 +248,9 @@ def checkedout(mode):
 
     # Handle the checkout.session.completed event
     if event['type'] == 'checkout.session.completed':
+        """
+        HI!
+        """
         print("HI")
 
         #get the session

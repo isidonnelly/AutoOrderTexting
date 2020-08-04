@@ -6,7 +6,9 @@ from settings import *
 from essentials import *
 
 from messaging import *
-
+"""
+Looks to me like this file is more about menus than ordering.
+"""
 
 """
 Finds the main item the customer wants.
